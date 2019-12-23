@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyAppointments</string>
+    <string name="app_name">S. R. Citas</string>
     <string name="label_login">Inicio de session</string>
     <string name="label_email">Correo</string>
     <string name="label_password">Clave</string>
@@ -10,4 +10,8 @@
     <string name="btn_register">Confirmar registro</string>
     <string name="label_go_to_login">Ya tienes una cuenta?</string>
     <string name="please_fill_your_register_data">Por favor completa tus datos</string>
+    <string name="btn_create_appointment">Reservar cita</string>
+    <string name="btn_my_appointments">Mis citas</string>
+    <string name="btn_log_out">Cerrar cesion</string>
+    <string name="label_welcome">Bienvenido</string>
 </resources>
