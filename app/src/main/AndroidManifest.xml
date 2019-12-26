@@ -13,15 +13,17 @@
         tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".AppointmentsActivity"
-            android:parentActivityName=".MenuActivity"
-            ></activity>
+            android:parentActivityName=".MenuActivity"></activity>
         <activity
             android:name=".CreateAppointmentActivity"
-            android:parentActivityName=".MenuActivity"
-            />
+            android:parentActivityName=".MenuActivity" />
         <activity android:name=".MenuActivity" />
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".RegisterActivity"
+            android:launchMode="singleInstance" />
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

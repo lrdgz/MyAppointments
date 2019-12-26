@@ -10,6 +10,7 @@
     <string name="btn_register">Confirmar registro</string>
     <string name="label_go_to_login">Ya tienes una cuenta?</string>
     <string name="please_fill_your_register_data">Por favor completa tus datos</string>
+    <string name="welcome_to_the_app">Bienvenido</string>
     <string name="btn_create_appointment">Reservar cita</string>
     <string name="btn_my_appointments">Mis citas</string>
     <string name="btn_log_out">Cerrar cesion</string>
