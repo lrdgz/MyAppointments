@@ -8,7 +8,11 @@ import android.widget.ArrayAdapter
 import android.widget.RadioButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import kotlinx.android.synthetic.main.activity_create_appointment.*
+
+import kotlinx.android.synthetic.main.card_view_step_one.*
+import kotlinx.android.synthetic.main.card_view_step_two.*
+import kotlinx.android.synthetic.main.card_view_step_three.*
+
 import java.util.*
 
 class CreateAppointmentActivity : AppCompatActivity() {
@@ -32,6 +36,13 @@ class CreateAppointmentActivity : AppCompatActivity() {
 
         }
 
+        btnNext2.setOnClickListener {
+            showAppointmentDataToConfirm()
+            //continue to step 3
+            cvStep2.visibility = View.GONE
+            cvStep3.visibility = View.VISIBLE
+        }
+
         btnConfirmAppointment.setOnClickListener {
             Toast.makeText(this, "Cita registrada correctamente", Toast.LENGTH_LONG).show()
             finish()
@@ -47,6 +58,19 @@ class CreateAppointmentActivity : AppCompatActivity() {
         spinnerDoctors.adapter =
             ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, DoctorOptions)
 
+    }
+
+    private fun showAppointmentDataToConfirm() {
+        tvConfirmDescription.text = etDescription.text.toString()
+        tvConfirmSpecialty.text = spinnerSpecialties.selectedItem.toString()
+
+        val selectedRadioBtnID = radioGroupType.checkedRadioButtonId
+        val selectedRadio = radioGroupType.findViewById<RadioButton>(selectedRadioBtnID)
+        tvConfirmType.text = selectedRadio.text.toString()
+
+        tvConfirmDoctorName.text = spinnerDoctors.selectedItem.toString()
+        tvConfirmDate.text = etScheduledDate.text.toString()
+        tvConfirmTime.text = selectedRadioButton?.text.toString()
     }
 
     fun onClickScheduledDate(v: View?) {
@@ -130,23 +154,32 @@ class CreateAppointmentActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
 
-        if (cvStep2.visibility == View.VISIBLE) {
-            cvStep2.visibility = View.GONE
-            cvStep1.visibility = View.VISIBLE
-        } else if (cvStep1.visibility == View.VISIBLE) {
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle(getString(R.string.dialog_appointment_exit_message))
-            builder.setMessage(getString(R.string.dialog_appointment_exit_message))
-            builder.setPositiveButton(getString(R.string.dialog_appointment_exit_positive_btn)) { _, _ ->
-                finish()
-            }
+        when {
+            cvStep3.visibility == View.VISIBLE -> {
+                cvStep3.visibility = View.GONE
+                cvStep2.visibility = View.VISIBLE
 
-            builder.setNegativeButton(getString(R.string.dialog_appointment_exit_negative_btn)) { dialog, _ ->
-                dialog.dismiss()
             }
+            cvStep2.visibility == View.VISIBLE -> {
+                cvStep2.visibility = View.GONE
+                cvStep1.visibility = View.VISIBLE
 
-            val dialog = builder.create()
-            dialog.show()
+            }
+            cvStep1.visibility == View.VISIBLE -> {
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle(getString(R.string.dialog_appointment_exit_message))
+                builder.setMessage(getString(R.string.dialog_appointment_exit_message))
+                builder.setPositiveButton(getString(R.string.dialog_appointment_exit_positive_btn)) { _, _ ->
+                    finish()
+                }
+
+                builder.setNegativeButton(getString(R.string.dialog_appointment_exit_negative_btn)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+
+                val dialog = builder.create()
+                dialog.show()
+            }
         }
 
     }
