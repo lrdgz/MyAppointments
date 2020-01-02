@@ -1,10 +1,11 @@
-package com.developer.myappointments
+package com.developer.myappointments.Ui
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.developer.myappointments.Model.Appointment
+import com.developer.myappointments.R
 import kotlinx.android.synthetic.main.item_appointment.view.*
 
 class AppointmentAdapter(private val appointments: ArrayList<Appointment>) :
