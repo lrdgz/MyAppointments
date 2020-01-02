@@ -3,6 +3,8 @@ package com.developer.myappointments.Ui
 import android.app.DatePickerDialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -11,6 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.developer.myappointments.Io.ApiService
 import com.developer.myappointments.Model.Doctor
+import com.developer.myappointments.Model.Schedule
 import com.developer.myappointments.Model.Specialty
 import com.developer.myappointments.R
 import com.google.android.material.snackbar.Snackbar
@@ -89,12 +92,14 @@ class CreateAppointmentActivity : AppCompatActivity() {
 //        spinnerSpecialties.adapter =
 //            ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, specialtiesOptions)
 
+//        val doctorOptions = arrayOf("Doctor A", "Doctor B", "Doctor C", "Doctor D")
+//        spinnerDoctors.adapter =
+//            ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, doctorOptions)
+
         loadSpecialties()
         listenSpecialtyChanges()
+        listenDoctorsAndDateChanges()
 
-        val doctorOptions = arrayOf("Doctor A", "Doctor B", "Doctor C", "Doctor D")
-        spinnerDoctors.adapter =
-            ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, doctorOptions)
 
     }
 
@@ -118,13 +123,15 @@ class CreateAppointmentActivity : AppCompatActivity() {
         val dayOfMonth = selectedCalendar.get(Calendar.DAY_OF_MONTH)
 
         val listener = DatePickerDialog.OnDateSetListener { datePicker, y, m, d ->
-            Toast.makeText(this, "$y-$m-$d", Toast.LENGTH_LONG).show()
+
+            //Toast.makeText(this, "$y-$m-$d", Toast.LENGTH_LONG).show()
             selectedCalendar.set(y, m, d)
+
             etScheduledDate.setText(
                 resources.getString(
                     R.string.date_format,
                     y,
-                    m.twoDigits(),
+                    (m+1).twoDigits(),
                     d.twoDigits()
                 )
             )
@@ -297,6 +304,60 @@ class CreateAppointmentActivity : AppCompatActivity() {
                             android.R.layout.simple_list_item_1,
                             doctors!!
                         )
+                }
+            }
+
+        })
+    }
+
+    private fun listenDoctorsAndDateChanges(){
+        //doctors
+        spinnerDoctors.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+
+            override fun onItemSelected(
+                adapter: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                val doctor = adapter?.getItemAtPosition(position) as Doctor
+                loadHours(doctor.id, etScheduledDate.text.toString())
+            }
+        }
+
+        //scheduledDate
+        etScheduledDate.addTextChangedListener( object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val doctor = spinnerDoctors.selectedItem as Doctor
+                loadHours(doctor.id, etScheduledDate.text.toString())
+            }
+
+        })
+    }
+
+    private fun loadHours(doctorId: Int, date: String){
+        val call = apiService.getHours(doctorId, date)
+        //Toast.makeText(this@CreateAppointmentActivity, "Doctor: $doctorId, date: $date", Toast.LENGTH_SHORT).show()
+        call.enqueue(object : Callback<Schedule> {
+            override fun onFailure(call: Call<Schedule>, t: Throwable) {
+                Toast.makeText(
+                    this@CreateAppointmentActivity,
+                    getString(R.string.error_loaded_hours),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            override fun onResponse(call: Call<Schedule>, response: Response<Schedule>) {
+                if (response.isSuccessful) { //200, 300
+                    val schedule = response.body()
+                    Toast.makeText(this@CreateAppointmentActivity, "Morning: ${schedule?.morning?.size}, Afternoon: ${schedule?.afternoon?.size}", Toast.LENGTH_SHORT).show()
                 }
             }
 
