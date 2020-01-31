@@ -136,7 +136,6 @@ class CreateAppointmentActivity : AppCompatActivity() {
                 )
             )
             etScheduledDate.error = null
-            displayRadioButtons()
         }
 
         //new dialog
@@ -159,19 +158,31 @@ class CreateAppointmentActivity : AppCompatActivity() {
         datePickerDialog.show()
     }
 
-    private fun displayRadioButtons() {
+    private fun displayIntervalRadios(hours: ArrayList<String>) {
 
         //LIMPIAR PARA QUE NO SE DUPLIQUEN
 //        radioGroup.clearCheck()
 //        radioGroup.removeAllViews()
 
-        selectedTimeRadioBtn = null;
+        selectedTimeRadioBtn = null
         radioGroupLeft.removeAllViews()
         radioGroupRight.removeAllViews()
 
-
-        val hours = arrayOf("3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM")
+        //val hours = arrayOf("3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM")
         var goToLeft = true
+
+
+        if (hours.isEmpty()){
+            tvNotAvailableHours.visibility = View.VISIBLE
+            Toast.makeText(
+                this@CreateAppointmentActivity,
+                getString(R.string.toast_not_hours_available),
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        tvNotAvailableHours.visibility = View.GONE
 
         hours.forEach {
 
@@ -343,6 +354,11 @@ class CreateAppointmentActivity : AppCompatActivity() {
     }
 
     private fun loadHours(doctorId: Int, date: String){
+
+        if(date.isEmpty()){
+            return
+        }
+
         val call = apiService.getHours(doctorId, date)
         //Toast.makeText(this@CreateAppointmentActivity, "Doctor: $doctorId, date: $date", Toast.LENGTH_SHORT).show()
         call.enqueue(object : Callback<Schedule> {
@@ -358,6 +374,21 @@ class CreateAppointmentActivity : AppCompatActivity() {
                 if (response.isSuccessful) { //200, 300
                     val schedule = response.body()
                     Toast.makeText(this@CreateAppointmentActivity, "Morning: ${schedule?.morning?.size}, Afternoon: ${schedule?.afternoon?.size}", Toast.LENGTH_SHORT).show()
+                    //val hours = arrayOf("3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM")
+                    schedule?.let {
+
+                        tvSelectDoctorAndDate.visibility = View.GONE
+
+                        val intervals = it.morning + it.afternoon
+                        val hours = ArrayList<String>()
+
+                        intervals.forEach { interval ->
+                            hours.add(interval.start)
+                        }
+
+                        displayIntervalRadios(hours)
+                    }
+
                 }
             }
 

@@ -4,19 +4,31 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
-import com.developer.myappointments.PreferenceHelper
+import com.developer.myappointments.Io.ApiService
+import com.developer.myappointments.Io.Response.LoginResponse
+import com.developer.myappointments.Util.PreferenceHelper
 import kotlinx.android.synthetic.main.activity_main.*
 
-import com.developer.myappointments.PreferenceHelper.get
-import com.developer.myappointments.PreferenceHelper.set
+import com.developer.myappointments.Util.PreferenceHelper.get
+import com.developer.myappointments.Util.PreferenceHelper.set
 import com.developer.myappointments.R
+import com.developer.myappointments.Util.toast
 import com.google.android.material.snackbar.Snackbar
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
+    private val apiService : ApiService by lazy {
+        ApiService.create()
+    }
+
     private val snackBar by lazy {
-        Snackbar.make(mainLayout,
-            R.string.press_back_again, Snackbar.LENGTH_SHORT)
+        Snackbar.make(
+            mainLayout,
+            R.string.press_back_again, Snackbar.LENGTH_SHORT
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,15 +41,14 @@ class MainActivity : AppCompatActivity() {
 
         val preferences =
             PreferenceHelper.defaultPrefs(this)
-        if (preferences["session", false])
+        if (preferences["token", ""].contains("."))
             goToMenuActivity()
 
         //Button to login
         btnLogin.setOnClickListener {
             //validate login
 
-            createSessionPreference()
-            goToMenuActivity()
+            performLogin()
         }
 
         //Button to register view
@@ -67,7 +78,51 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun createSessionPreference(){
+    private fun performLogin(){
+
+        val email = etEmail.text.toString()
+        val password = etPassword.text.toString()
+
+        if (email.trim().isEmpty() || password.trim().isEmpty()){
+            toast(getString(R.string.error_empty_credentials))
+            return
+        }
+
+        val call = apiService.postLogin(email, password)
+        call.enqueue(object: Callback<LoginResponse> {
+            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                toast(t.localizedMessage)
+            }
+
+            override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+                if (response.code() == 401){
+                    toast(getString(R.string.error_login_credentials))
+                }
+
+                if (response.isSuccessful){
+                    val loginResponse = response.body()
+                    if (loginResponse == null) {
+                        toast(getString(R.string.error_login_response))
+                        return
+                    }
+
+                    if (loginResponse.success) {
+                        createSessionPreference(loginResponse.access_token)
+                        toast(getString(R.string.welcome_name, loginResponse.user.name))
+                        goToMenuActivity()
+                    } else {
+                        toast(getString(R.string.error_credentials_login))
+                    }
+
+                } else {
+                    toast(getString(R.string.error_login_response))
+                }
+            }
+
+        })
+    }
+
+    private fun createSessionPreference(access_token: String) {
 //        val preferences = getSharedPreferences("general", Context.MODE_PRIVATE)
 //        val editor = preferences.edit()
 //        editor.putBoolean("session", true)
@@ -75,6 +130,6 @@ class MainActivity : AppCompatActivity() {
 
         val preferences =
             PreferenceHelper.defaultPrefs(this)
-        preferences["session"] = true
+        preferences["token"] = access_token
     }
 }
